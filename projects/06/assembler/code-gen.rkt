@@ -8,8 +8,8 @@
    (for/list ([command lst])
 	 (match command
 	   [(command/a r)       r]
-	   [(command/c #f c #f) (string-append "111" "000" c "000")]
-	   [(command/c #f c j)  (string-append "111" "000" c j)]
-	   [(command/c d  c #f) (string-append "111" d c "000")]
-	   [(command/c d  c j)  (string-append "111" d c j)]))
+	   [(command/c #f c #f) (string-append "111" c "000" "000")]
+	   [(command/c #f c j)  (string-append "111" c "000" j)]
+	   [(command/c d  c #f) (string-append "111" c d "000")]
+	   [(command/c d  c j)  (string-append "111" c d j)]))
    "\n"))
