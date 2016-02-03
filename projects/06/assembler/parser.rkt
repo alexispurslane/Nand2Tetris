@@ -10,13 +10,23 @@
 
 (struct command/a (address) #:transparent)
 (struct command/c (dest comp jump) #:transparent)
-(struct command/l (symbol) #:transparent)
+(struct command/l (symbol address) #:transparent)
 
 (define (file->commands file-name)
-  (for/list ([line (file->lines file-name)]
-			 #:unless (or (string-prefix? line "//")
-						  (equal? line "")))
-	(string->command (string-trim line))))
+  (define-values (_ st cs)
+	(for/fold ([wordn 0]
+			   [symbol-table (make-hash)]
+			   [commands '()])
+		([line (file->lines file-name)]
+		 #:unless (or (string-prefix? line "//")
+					  (equal? line "")))
+	  (let ([wordn (+ 1 wordn)]
+			[command (string->command (string-trim line)
+									  wordn
+									  symbol-table)])
+		(values wordn (first command)
+				(cons (second command) commands)))))
+  (reverse cs))
 
 (define (number->binary-string n)
   (cond [(not n) #f]
@@ -31,7 +41,7 @@
 			 #:pad-string "0"
 			 #:align 'right)]))
 
-(define (string->command str) 
+(define (string->command str wordn symbol-table)
   (define string->operation (match-lambda
 										; a = 0
 							  ["0"   "0101010"]
@@ -81,20 +91,38 @@
 						 ["JNE" "101"]
 						 ["JLE" "110"]
 						 ["JMP" "111"]))
-  
-  (match (string->list str)
-	[(list #\@ number ...) (command/a
-							(format-binary (number->binary-string
-											(string->number (list->string number)))))]
-	[(list dest ... #\= comp ... #\; jump ...)
-	 (command/c (string->dest (list->string dest))
-				(string->operation (list->string comp))
-				(string->jump (list->string jump)))]
-	[(list dest ... #\= comp ...)
-	 (command/c (string->dest (list->string dest))
-				(string->operation (list->string comp))
-				#f)]
-	[(list comp ... #\; jump ...)
-	 (command/c #f
-				(string->operation (list->string comp))
-				(string->jump (list->string jump)))]))
+
+  (define command (match (string->list str)
+					[(list #\@ number ...)
+					 (command/a
+					  (format-binary
+					   (let ([n (number->binary-string
+								 (string->number (list->string number)))])
+						 (if (not n)
+							 (number->binary-string
+							  (hash-ref! symbol-table
+										 (list->string number)
+										 (+ 16 (length
+												(hash-keys symbol-table)))))
+							 n))))]
+					
+					[(list dest ... #\= comp ... #\; jump ...)
+					 (command/c (string->dest (list->string dest))
+								(string->operation (list->string comp))
+								(string->jump (list->string jump)))]
+					
+					[(list dest ... #\= comp ...)
+					 (command/c (string->dest (list->string dest))
+								(string->operation (list->string comp))
+								#f)]
+					
+					[(list #\( label ... #\))
+					 (hash-set! symbol-table (list->string label) wordn)
+					 (command/l (list->string label)
+								(hash-ref symbol-table (list->string label)))]
+					
+					[(list comp ... #\; jump ...)
+					 (command/c #f
+								(string->operation (list->string comp))
+								(string->jump (list->string jump)))]))
+  (list symbol-table command))

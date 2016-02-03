@@ -1,1 +1,0 @@
-("6.3" ("4cfa953c658b0f6143867ecd10b7e90a16a7d040" . "0a81cefef92f78759762b823c300fadf53dc20a2") #"/Users/christopherdumas/Downloads/nand2tetris/projects/06/assembler/parser.rkt" (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt") (indirect collects #"racket" #"match" #"gen-match.rkt") (indirect collects #"racket" #"match" #"parse.rkt"))
