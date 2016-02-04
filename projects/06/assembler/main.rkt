@@ -13,5 +13,7 @@
    file-name))
 
 (write-file (string-append file-name ".hack")
-			(generate-code (file->commands
-							(string-append file-name ".asm"))))
+			(generate-code (let* ([code (file->commands
+										 (string-append file-name ".asm"))]
+								  [symbol-table (build-symbol-table code)])
+							 (apply-symbol-table symbol-table code))))

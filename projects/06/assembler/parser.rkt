@@ -4,7 +4,7 @@
  file->commands
  string->command
  build-symbol-table
- ; apply-symbol-table
+ apply-symbol-table
  
  (struct-out command/a)
  (struct-out command/c)
@@ -46,6 +46,19 @@
       [(command/l symbol location)
        (hash-set symbol-table symbol (list location 'SYM))]
       [else symbol-table])))
+
+(define (apply-symbol-table symbol-table commands)
+  (for/list ([command commands])
+    (match command
+      [(command/a number)
+       (let ([n (string->number number)]
+             [sym (hash-ref symbol-table number #f)])
+         (command/a (format-binary (number->binary-string
+                                    (if (not n)
+                                        (first sym)
+                                        n)))))]
+      [else command])))
+
 
 (define (number->binary-string n)
   (cond [(not n) #f]
