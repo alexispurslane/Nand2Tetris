@@ -22,13 +22,42 @@
         ([line (file->lines file-name)]
          #:unless (or (string-prefix? line "//")
                       (equal? line "")))
+      (define command (string->command (string-trim (first (string-split line "//"))) wordn))
       (values
-       (+ 1 wordn)
-       (cons (string->command (string-trim line) wordn) commands))))
+       (if (not (command/l? command))
+           (+ 1 wordn)
+           wordn)
+       (cons command commands))))
   (reverse cs))
 
 (define (build-symbol-table commands)
-  (for/fold ([symbol-table (hash)])
+  (define DEFAULTS '("SP"     0
+                     "LCL"    1
+                     "ARG"    2
+                     "THIS"   3
+                     "THAT"   4
+                     "R0"     0
+                     "R1"     1
+                     "R2"     2
+                     "R3"     3
+                     "R4"     4
+                     "R5"     5
+                     "R6"     6
+                     "R7"     7
+                     "R8"     8
+                     "R9"     9
+                     "R10"    10
+                     "R11"    11
+                     "R12"    12
+                     "R13"    13
+                     "R14"    14
+                     "R15"    15
+                     "SCREEN" 16384
+                     "KBD"    24576))
+  (for/fold ([symbol-table (apply hash (map (λ (x) (if (number? x)
+                                                       (list x 'VAR)
+                                                       x))
+                                            DEFAULTS))])
             ([command commands])
     (match command
       [(command/a number)
@@ -137,7 +166,7 @@
                 #f)]
     [(list #\( label ... #\))
      (command/l (list->string label)
-                (- wordn 1))]
+                wordn)]
     [(list comp ... #\; jump ...)
      (command/c #f
                 (string->operation (list->string comp))
