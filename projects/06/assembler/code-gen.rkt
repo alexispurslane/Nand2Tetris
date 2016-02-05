@@ -1,5 +1,16 @@
 #lang racket
 
+#|
+PURPOSE: This module generates true binary words from the parse
+tree. It's a mostly very simple process of pattern matching.
+
+COMMENTS:
+  * I sort of think I should combine this with the parser module if this doesn't
+    get any bigger.
+
+BUGS: No known ones.
+|#
+
 (require "parser.rkt")
 (provide generate-code)
 

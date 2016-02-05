@@ -1,5 +1,10 @@
 #lang racket
 
+#|
+PURPOSE: This module is a command line interface for the assembler.
+It sort of brings everything together.
+|#
+
 (require "parser.rkt"
 		 "code-gen.rkt"
 		 "pretty-print-custom.rkt"
