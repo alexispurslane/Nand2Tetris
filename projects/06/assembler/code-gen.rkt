@@ -12,6 +12,7 @@ BUGS: No known ones.
 |#
 
 (require "parser.rkt")
+(require "util.rkt")
 (provide generate-code)
 
 (define (generate-code lst)

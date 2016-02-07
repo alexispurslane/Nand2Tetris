@@ -74,37 +74,20 @@ so all variables seem to end up in the same place.
         ([command commands])
       (match command
         [(command/a number)
-         (let ([num (or (string->number number)
-                        (hash-ref symbol-table number #f))])
+         (let* ([num (or (string->number number)
+                         (hash-ref symbol-table number #f))]
+                [val (command/a (number->binary (or num varn)))])
            (cond
              [num (values varn
                           symbol-table
-                          (append commands
-                                  (list (command/a (format-binary
-                                                    (number->binary-string num))))))]
+                          (rcons commands val))]
              [else (values (+ varn 1)
                            (hash-set symbol-table number varn)
-                           (append commands
-                                   (list (command/a (format-binary
-                                                     (number->binary-string varn))))))]))]
+                           (rcons commands val))]))]
         [else (values varn
                       symbol-table
-                      (append commands (list command)))])))
+                      (rcons commands command))])))
   cs)
-
-
-(define (number->binary-string n)
-  (cond [(not n) #f]
-        [(< n 2) (number->string n)]
-        [else (string-append (number->binary-string (quotient n 2))
-                             (number->string (remainder n 2)))]))
-
-(define (format-binary str [width 16])
-  (cond [(not str) #f]
-        [(~a str
-             #:width 16
-             #:pad-string "0"
-             #:align 'right)]))
 
 (define (string->command str wordn) 
   (match (string->list str)

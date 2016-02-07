@@ -2,6 +2,23 @@
 
 (provide (all-defined-out))
 
+(define (number->binary-string n)
+  (cond [(not n) #f]
+        [(< n 2) (number->string n)]
+        [else (string-append (number->binary-string (quotient n 2))
+                             (number->string (remainder n 2)))]))
+
+(define (format-binary str [width 16])
+  (cond [(not str) #f]
+        [(~a str
+             #:width 16
+             #:pad-string "0"
+             #:align 'right)]))
+
+(define number->binary (compose format-binary number->binary-string))
+
+(define (rcons x y) (append x (list y)))
+
 (define-syntax-rule (debug form)
   (let ([v form])
 	(displayln v)
