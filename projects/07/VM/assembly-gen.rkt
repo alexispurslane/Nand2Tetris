@@ -148,7 +148,6 @@
     "M=D-M"
     "@SP"
     "M=M+1")]
-   ;; ALL THE COMMANDS BELOW ARE INVALID. THEY NEED TO DEINCREMENT ONE MORE TIME
   [((command "not" #f #f) _ _)
    (join-line
     "@SP"
