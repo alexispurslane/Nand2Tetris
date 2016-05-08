@@ -123,6 +123,15 @@
    "@SP"
    "M=M+1"))
 
+(define (single-op op)
+  (join-line
+   "@SP"
+   "M=M-1"
+   "A=M"
+   (string-concat "M=" op "M")
+   "@SP"
+   "M=M+1"))
+
 (define/match (command->assembly c filen n)
   [((command "push" segment x) _ _)
    (match segment
@@ -163,22 +172,10 @@
                   dncr-stack)])]
   [((command "add" #f #f) _ _) (stack-op "+")]
   [((command "sub" #f #f) _ _) (stack-op "-")]
-  [((command "not" #f #f) _ _) (join-line
-                                "@SP"
-                                "M=M-1"
-                                "A=M"
-                                "M=!M"
-                                "@SP"
-                                "M=M+1")]
-  [((command "eq" #f #f) _ n) (bool-op "eq" n)]
-  [((command "gt" #f #f) _ n) (bool-op "lt" n)]
-  [((command "lt" #f #f) _ n) (bool-op "gt" n)]
+  [((command "not" #f #f) _ _) (single-op "!")]
+  [((command "eq" #f #f) _ n)  (bool-op "eq" n)]
+  [((command "gt" #f #f) _ n)  (bool-op "lt" n)]
+  [((command "lt" #f #f) _ n)  (bool-op "gt" n)]
   [((command "and" #f #f) _ _) (stack-op "&")]
-  [((command "or" #f #f) _ _) (stack-op "|")]
-  [((command "neg" #f #f) _ _) (join-line
-                                "@SP"
-                                "M=M-1"
-                                "A=M"
-                                "M=-M"
-                                "@SP"
-                                "M=M+1")])
+  [((command "or" #f #f) _ _)  (stack-op "|")]
+  [((command "neg" #f #f) _ _) (single-op "-")])
