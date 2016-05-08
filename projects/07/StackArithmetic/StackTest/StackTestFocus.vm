@@ -1,0 +1,5 @@
+push constant 0
+push constant 84
+and
+push constant 82
+or

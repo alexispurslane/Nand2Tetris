@@ -84,6 +84,45 @@
    "M=D"
    dncr-stack))
 
+(define (stack-op op)
+  (join-line
+   "@SP"
+   "AM=M-1"
+   "D=M"
+   "@SP"
+   "AM=M-1"
+   (string-concat "M=D" op "M")
+   "@SP"
+   "M=M+1"))
+
+(define (bool-op type n)
+  (join-line
+   "@SP"
+   "M=M-1"
+   "A=M"
+   "D=M"
+   "@SP"
+   "M=M-1"
+   "A=M"
+   "M=D-M"
+   "D=M"
+   (string-concat "@TRUE" n)
+   (string-concat "D;J" (string-upcase type))
+   (string-concat "@FALSE" n)
+   "0;JMP"
+   (string-concat "(" "TRUE" n ")")
+   "@SP"
+   "A=M"
+   "M=-1"
+   (string-concat "@NEXT" n)
+   "0;JMP"
+   (string-concat "(" "FALSE" n ")")
+   "@SP"
+   "A=M"
+   (string-concat "(" "NEXT" n ")")
+   "@SP"
+   "M=M+1"))
+
 (define/match (command->assembly c filen n)
   [((command "push" segment x) _ _)
    (match segment
@@ -122,158 +161,24 @@
                   (string-concat "@" filen "." x)
                   "A=D"
                   dncr-stack)])]
-  [((command "add" #f #f) _ _)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D+M"
-    "@SP"
-    "M=M+1")]
-  [((command "sub" #f #f) _ _)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D-M"
-    "@SP"
-    "M=M+1")]
-  [((command "not" #f #f) _ _)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=!M"
-    "@SP"
-    "M=M+1")]
-  [((command "eq" #f #f) _ n)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D-M"
-    "D=M"
-    (string-concat "@TRUE" n)
-    "D;JEQ"
-    (string-concat "@FALSE" n)
-    "0;JMP"
-    (string-concat "(" "TRUE" n ")")
-    "@SP"
-    "A=M"
-    "M=-1"
-    (string-concat "@NEXT" n)
-    "0;JMP"
-    (string-concat "(" "FALSE" n ")")
-    "@SP"
-    "A=M"
-    "M=0"
-    (string-concat "(" "NEXT" n ")")
-    "@SP"
-    "M=M+1")]
-  [((command "gt" #f #f) _ n)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D-M"
-    "D=M"
-    (string-concat "@TRUE" n)
-    "D;JLT"
-    (string-concat "@FALSE" n)
-    "0;JMP"
-    (string-concat "(" "TRUE" n ")")
-    "@SP"
-    "A=M"
-    "M=-1"
-    (string-concat "@NEXT" n)
-    "0;JMP"
-    (string-concat "(" "FALSE" n ")")
-    "@SP"
-    "A=M"
-    "M=0"
-    (string-concat "(" "NEXT" n ")")
-    "@SP"
-    "M=M+1")]
-  [((command "lt" #f #f) _ n)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D-M"
-    "D=M"
-    (string-concat "@TRUE" n)
-    "D;JGT"
-    (string-concat "@FALSE" n)
-    "0;JMP"
-    (string-concat "(" "TRUE" n ")")
-    "@SP"
-    "A=M"
-    "M=-1"
-    (string-concat "@NEXT" n)
-    "0;JMP"
-    (string-concat "(" "FALSE" n ")")
-    "@SP"
-    "A=M"
-    "M=0"
-    (string-concat "(" "NEXT" n ")")
-    "@SP"
-    "M=M+1")]
-  [((command "and" #f #f) _ _)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D&M"
-    "@SP"
-    "M=M+1")]
-  [((command "or" #f #f) _ _)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "D=M"
-    "M=0"
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=D|M"
-    "@SP"
-    "M=M+1")]
-  [((command "neg" #f #f) _ _)
-   (join-line
-    "@SP"
-    "M=M-1"
-    "A=M"
-    "M=-M"
-    "@SP"
-    "M=M+1")])
+  [((command "add" #f #f) _ _) (stack-op "+")]
+  [((command "sub" #f #f) _ _) (stack-op "-")]
+  [((command "not" #f #f) _ _) (join-line
+                                "@SP"
+                                "M=M-1"
+                                "A=M"
+                                "M=!M"
+                                "@SP"
+                                "M=M+1")]
+  [((command "eq" #f #f) _ n) (bool-op "eq" n)]
+  [((command "gt" #f #f) _ n) (bool-op "lt" n)]
+  [((command "lt" #f #f) _ n) (bool-op "gt" n)]
+  [((command "and" #f #f) _ _) (stack-op "&")]
+  [((command "or" #f #f) _ _) (stack-op "|")]
+  [((command "neg" #f #f) _ _) (join-line
+                                "@SP"
+                                "M=M-1"
+                                "A=M"
+                                "M=-M"
+                                "@SP"
+                                "M=M+1")])
