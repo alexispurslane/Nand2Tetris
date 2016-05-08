@@ -19,7 +19,8 @@
 (write-file out-name (match (string-split file-or-directory ".")
                        [(list vm-code "vm") (generate-assembly
                                              (list
-                                              (file->commands file-or-directory)) vm-code)]
+                                              (file->commands file-or-directory))
+					     (list vm-code))]
                        [(list dir) (generate-assembly
                                     (map (compose file->commands path->string)
                                          (directory-list dir))

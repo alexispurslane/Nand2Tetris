@@ -1,35 +1,30 @@
-#lang racket
+#lang rackjure
 
 (require "parser.rkt")
 (provide generate-assembly)
 
 (define (generate-assembly files-commands names)
-  (string-join (for/list ([commands files-commands]
-                          [name     names])
-                 (commands->assembly commands name)) "\n"))
+  (~> (map commands->assembly files-commands names)
+       (string-join "\n")))
 
 (define (values-first x y) x)
 
 (define (commands->assembly commands filen)
   (string-append
-   (call-with-values (λ ()
-                       (for/fold ([assembly (join-line "@256"
-                                                       "D=A"
-                                                       "@SP"
-                                                       "M=D"
-                                                       "@2048"
-                                                       "D=A"
-                                                       "@THIS"
-                                                       "M=D"
-                                                       "@2049"
-                                                       "D=A"
-                                                       "@THAT"
-                                                       "M=D")]
-                                  [n 0])
-                                 ([c commands])
-                         (values (string-append assembly
-                                                (command->assembly c filen n))
-                                 (+ n 1)))) values-first)
+   (foldl #λ(~> %3 (string-append (command->assembly %1 filen %2)))
+          (join-line "@256" "D=A"
+                     "@SP"
+                     "M=D"
+                     "@2048"
+                     "D=A"
+                     "@THIS"
+                     "M=D"
+                     "@2049"
+                     "D=A"
+                     "@THAT"
+                     "M=D")
+          commands
+          (range 0 (length commands)))
    (join-line
     "(END)"
     "@END"
@@ -98,14 +93,11 @@
 (define (bool-op type n)
   (join-line
    "@SP"
-   "M=M-1"
-   "A=M"
+   "AM=M-1"
    "D=M"
    "@SP"
-   "M=M-1"
-   "A=M"
-   "M=D-M"
-   "D=M"
+   "AM=M-1"
+   "DM=D-M"
    (string-concat "@TRUE" n)
    (string-concat "D;J" (string-upcase type))
    (string-concat "@FALSE" n)
@@ -126,8 +118,7 @@
 (define (single-op op)
   (join-line
    "@SP"
-   "M=M-1"
-   "A=M"
+   "AM=M-1"
    (string-concat "M=" op "M")
    "@SP"
    "M=M+1"))

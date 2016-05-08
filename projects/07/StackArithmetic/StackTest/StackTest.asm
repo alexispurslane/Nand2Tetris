@@ -27,15 +27,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE2
 D;JEQ
 @FALSE2
@@ -49,7 +45,6 @@ M=-1
 (FALSE2)
 @SP
 A=M
-M=0
 (NEXT2)
 @SP
 M=M+1
@@ -70,15 +65,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE5
 D;JEQ
 @FALSE5
@@ -92,7 +83,6 @@ M=-1
 (FALSE5)
 @SP
 A=M
-M=0
 (NEXT5)
 @SP
 M=M+1
@@ -113,15 +103,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE8
 D;JEQ
 @FALSE8
@@ -135,7 +121,6 @@ M=-1
 (FALSE8)
 @SP
 A=M
-M=0
 (NEXT8)
 @SP
 M=M+1
@@ -156,15 +141,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE11
 D;JGT
 @FALSE11
@@ -178,7 +159,6 @@ M=-1
 (FALSE11)
 @SP
 A=M
-M=0
 (NEXT11)
 @SP
 M=M+1
@@ -199,15 +179,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE14
 D;JGT
 @FALSE14
@@ -221,7 +197,6 @@ M=-1
 (FALSE14)
 @SP
 A=M
-M=0
 (NEXT14)
 @SP
 M=M+1
@@ -242,15 +217,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE17
 D;JGT
 @FALSE17
@@ -264,7 +235,6 @@ M=-1
 (FALSE17)
 @SP
 A=M
-M=0
 (NEXT17)
 @SP
 M=M+1
@@ -285,15 +255,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE20
 D;JLT
 @FALSE20
@@ -307,7 +273,6 @@ M=-1
 (FALSE20)
 @SP
 A=M
-M=0
 (NEXT20)
 @SP
 M=M+1
@@ -328,15 +293,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE23
 D;JLT
 @FALSE23
@@ -350,7 +311,6 @@ M=-1
 (FALSE23)
 @SP
 A=M
-M=0
 (NEXT23)
 @SP
 M=M+1
@@ -371,15 +331,11 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
-M=D-M
-D=M
+AM=M-1
+DM=D-M
 @TRUE26
 D;JLT
 @FALSE26
@@ -393,7 +349,6 @@ M=-1
 (FALSE26)
 @SP
 A=M
-M=0
 (NEXT26)
 @SP
 M=M+1
@@ -422,13 +377,10 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D+M
 @SP
 M=M+1
@@ -441,30 +393,23 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D-M
 @SP
 M=M+1
 @SP
-M=M-1
-A=M
+AM=M-1
 M=-M
 @SP
 M=M+1
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D&M
 @SP
 M=M+1
@@ -477,19 +422,15 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D|M
 @SP
 M=M+1
 @SP
-M=M-1
-A=M
+AM=M-1
 M=!M
 @SP
 M=M+1

@@ -10,6 +10,14 @@ M=D
 D=A
 @THAT
 M=D
+@0
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
 @84
 D=A
 @SP
@@ -19,12 +27,10 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D&M
 @SP
 M=M+1
@@ -37,12 +43,10 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D|M
 @SP
 M=M+1
