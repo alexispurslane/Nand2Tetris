@@ -4,15 +4,15 @@
 (provide generate-assembly)
 
 (define (generate-assembly files-commands names)
-  (~> (map commands->assembly files-commands names)
-       (string-join "\n")))
+  (string-join (map commands->assembly files-commands names) "\n"))
 
 (define (values-first x y) x)
 
 (define (commands->assembly commands filen)
   (string-append
    (foldl #λ(~> %3 (string-append (command->assembly %1 filen %2)))
-          (join-line "@256" "D=A"
+          (join-line "@256"
+                     "D=A"
                      "@SP"
                      "M=D"
                      "@2048"
@@ -38,10 +38,10 @@
     [(hash? x) (list->string (hash->list x))]))
 
 (define (string-concat . z)
-  (string-join (map ->string z) ""))
+  (~> (map ->string z) (string-join "")))
 
 (define (join-line . lines)
-  (string-append (string-join lines "\n") "\n"))
+  (~> lines (string-join "\n") (string-append "\n")))
 
 (define incr-stack (join-line 
                     "@SP"
@@ -93,11 +93,14 @@
 (define (bool-op type n)
   (join-line
    "@SP"
-   "AM=M-1"
+   "M=M-1"
+   "A=M"
    "D=M"
    "@SP"
-   "AM=M-1"
-   "DM=D-M"
+   "M=M-1"
+   "A=M"
+   "M=D-M"
+   "D=M"
    (string-concat "@TRUE" n)
    (string-concat "D;J" (string-upcase type))
    (string-concat "@FALSE" n)
@@ -118,7 +121,8 @@
 (define (single-op op)
   (join-line
    "@SP"
-   "AM=M-1"
+   "M=M-1"
+   "A=M"
    (string-concat "M=" op "M")
    "@SP"
    "M=M+1"))

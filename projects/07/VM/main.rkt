@@ -1,4 +1,4 @@
-#lang racket
+#lang rackjure
 
 (require "parser.rkt"
          "assembly-gen.rkt"
@@ -14,14 +14,17 @@
    #:args (file-or-directory)
    file-or-directory))
 
-(define out-name (string-append (first (string-split file-or-directory "."))
-                                ".asm"))
+(define out-name (~> file-or-directory
+                     (string-split ".")
+                     first
+                     (string-append ".asm")))
+
 (write-file out-name (match (string-split file-or-directory ".")
                        [(list vm-code "vm") (generate-assembly
                                              (list
                                               (file->commands file-or-directory))
 					     (list vm-code))]
                        [(list dir) (generate-assembly
-                                    (map (compose file->commands path->string)
+                                    (map #λ{~> % path->string file->commands}
                                          (directory-list dir))
                                     (map path->string (directory-list dir)))]))

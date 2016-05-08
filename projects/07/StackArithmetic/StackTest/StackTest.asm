@@ -27,11 +27,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE2
 D;JEQ
 @FALSE2
@@ -65,11 +68,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE5
 D;JEQ
 @FALSE5
@@ -103,11 +109,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE8
 D;JEQ
 @FALSE8
@@ -141,11 +150,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE11
 D;JGT
 @FALSE11
@@ -179,11 +191,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE14
 D;JGT
 @FALSE14
@@ -217,11 +232,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE17
 D;JGT
 @FALSE17
@@ -255,11 +273,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE20
 D;JLT
 @FALSE20
@@ -293,11 +314,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE23
 D;JLT
 @FALSE23
@@ -331,11 +355,14 @@ M=D
 M=M+1
 
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
 @SP
-AM=M-1
-DM=D-M
+M=M-1
+A=M
+M=D-M
+D=M
 @TRUE26
 D;JLT
 @FALSE26
@@ -401,7 +428,8 @@ M=D-M
 @SP
 M=M+1
 @SP
-AM=M-1
+M=M-1
+A=M
 M=-M
 @SP
 M=M+1
@@ -430,7 +458,8 @@ M=D|M
 @SP
 M=M+1
 @SP
-AM=M-1
+M=M-1
+A=M
 M=!M
 @SP
 M=M+1
