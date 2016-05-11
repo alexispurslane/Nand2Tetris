@@ -3,7 +3,7 @@
 (require "parser.rkt")
 (provide generate-assembly)
 
-(define (generate-assembly files-commands names)
+(define (generate-assembly files-commands names) 
   (string-join (map commands->assembly files-commands names) "\n"))
 
 (define (values-first x y) x)
@@ -37,11 +37,9 @@
     [(list? x) (list->string x)]
     [(hash? x) (list->string (hash->list x))]))
 
-(define (string-concat . z)
-  (~> (map ->string z) (string-join "")))
+(define (string-concat . z) (~> (map ->string z) (string-join "")))
 
-(define (join-line . lines)
-  (~> lines (string-join "\n") (string-append "\n")))
+(define (join-line . lines) (~> lines (string-join "\n") (string-append "\n")))
 
 (define incr-stack (join-line 
                     "@SP"
@@ -86,20 +84,17 @@
    "D=M"
    "@SP"
    "AM=M-1"
-   (string-concat "M=D" op "M")
-   "@SP"
-   "M=M+1"))
+   (string-concat "M=" op)
+   incr-stack))
 
 (define (bool-op type n)
   (join-line
-   "@SP"
-   "M=M-1"
+   dncr-stack
    "A=M"
    "D=M"
-   "@SP"
-   "M=M-1"
+   dncr-stack
    "A=M"
-   "M=D-M"
+   "M=M-D"
    "D=M"
    (string-concat "@TRUE" n)
    (string-concat "D;J" (string-upcase type))
@@ -114,18 +109,16 @@
    (string-concat "(" "FALSE" n ")")
    "@SP"
    "A=M"
+   "M=0"
    (string-concat "(" "NEXT" n ")")
-   "@SP"
-   "M=M+1"))
+   incr-stack))
 
 (define (single-op op)
   (join-line
-   "@SP"
-   "M=M-1"
+   dncr-stack
    "A=M"
    (string-concat "M=" op "M")
-   "@SP"
-   "M=M+1"))
+   incr-stack))
 
 (define/match (command->assembly c filen n)
   [((command "push" segment x) _ _)
@@ -165,12 +158,12 @@
                   (string-concat "@" filen "." x)
                   "A=D"
                   dncr-stack)])]
-  [((command "add" #f #f) _ _) (stack-op "+")]
-  [((command "sub" #f #f) _ _) (stack-op "-")]
+  [((command "add" #f #f) _ _) (stack-op "D+M")]
+  [((command "sub" #f #f) _ _) (stack-op "M-D")]
   [((command "not" #f #f) _ _) (single-op "!")]
   [((command "eq" #f #f) _ n)  (bool-op "eq" n)]
-  [((command "gt" #f #f) _ n)  (bool-op "lt" n)]
-  [((command "lt" #f #f) _ n)  (bool-op "gt" n)]
-  [((command "and" #f #f) _ _) (stack-op "&")]
-  [((command "or" #f #f) _ _)  (stack-op "|")]
+  [((command "gt" #f #f) _ n)  (bool-op "gt" n)]
+  [((command "lt" #f #f) _ n)  (bool-op "lt" n)]
+  [((command "and" #f #f) _ _) (stack-op "D&M")]
+  [((command "or" #f #f) _ _)  (stack-op "D|M")]
   [((command "neg" #f #f) _ _) (single-op "-")])
