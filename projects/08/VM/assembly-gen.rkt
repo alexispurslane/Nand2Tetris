@@ -134,7 +134,13 @@
      ["that"     (push-to x "THAT" 'memory)]
      ["temp"     (push-to (+ 5 x) "0" 'fixed)]
      ["pointer"  (push-to (+ 3 x) "0" 'fixed)]
-     ["static"   (push-to (+ 16 x) "0" 'fixed)])]
+     ["static" (join-line
+                (string-concat "@" filen "." x)
+                "D=M"
+                "@SP"
+                "A=M"
+                "M=D"
+                incr-stack)])]
   [((command "pop" segment sx) _ _)
    (define x (string->number sx))
    (match segment
@@ -144,7 +150,13 @@
      ["this"     (pop-to x "THIS" 'memory)]
      ["temp"     (pop-to (+ 5 x) "0" 'fixed)]
      ["pointer"  (pop-to (+ 3 x) "0" 'fixed)]
-     ["static"   (pop-to (+ 16 x) "0" 'fixed)])]
+     ["static"   (join-line
+                  "@SP"
+                  "A=M"
+                  "D=M"
+                  (string-concat "@" filen "." x)
+                  "A=D"
+                  dncr-stack)])]
   [((command "label" label #f) _ _)
    (string-concat "(" (string-upcase label) ")\n")]
   [((command "goto" label #f) _ _)
