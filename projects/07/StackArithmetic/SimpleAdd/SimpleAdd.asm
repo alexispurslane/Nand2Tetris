@@ -1,15 +1,3 @@
-@256
-D=A
-@SP
-M=D
-@2048
-D=A
-@THIS
-M=D
-@2049
-D=A
-@THAT
-M=D
 @7
 D=A
 @SP
@@ -27,16 +15,14 @@ M=D
 M=M+1
 
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
-M=0
 @SP
-M=M-1
-A=M
+AM=M-1
 M=D+M
 @SP
 M=M+1
+
 (END)
 @END
 0;JMP
