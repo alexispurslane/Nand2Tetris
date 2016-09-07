@@ -1,36 +1,52 @@
 #lang rackjure
-;; 07
 (require "parser.rkt"
          "constants.rkt")
 (provide generate-assembly)
 
+(define *prev-fname* "")
 (define (generate-assembly files-commands names) 
-  (string-join (append (list (join-line "@256"
-                                        "D=A"
-                                        "@SP"
-                                        "M=D"))
-                       (map commands->assembly
-                            (append (list (list
-                                           (command "call" "Sys.init" #f)))
-                                    files-commands)
-                            (append (list "bootstrap")
-                                    (map #λ(last (string-split %1 "/")) names)))) "\n"))
+  (string-join (append
+                (list (join-line
+                       "@256"
+                       "D=A"
+                       "@SP"
+                       "M=D"
+                       "@3000"
+                       "D=A"
+                       "@THIS"
+                       "M=D"
+                       "@4000"
+                       "D=A"
+                       "@THAT"
+                       "M=D"))
+                (list (last (command->assembly (command "call" "Sys.init" "0")
+                                               "bootstrap"
+                                               '("VM$outer")
+                                               0))) 
+                (map commands->assembly
+                     files-commands
+                     (map #λ(last (string-split %1 "/")) names))
+                (list (join-line
+                       "(END)"
+                       "@END"
+                       "0;JMP"))) "\n"))
+
+(define (debug x)
+  (displayln x)
+  x)
 
 (define (commands->assembly commands filen)
+  (displayln filen)
   (string-append
-   (foldl (λ (command instruction-number acc)
-            (match-define (list function-name assembly) acc)
-            (string-append assembly (command->assembly command
-                                                       filen
-                                                       function-name
-                                                       instruction-number)))
-          (list "VM$outer" "")
-          commands
-          (range 0 (length commands)))
-   (join-line
-    "(END)"
-    "@END"
-    "0;JMP")))
+   (last (foldl (λ (command instruction-number acc)
+                  (match-define (list function-stack assembly) acc)
+                  (match-define (list fstack nassem)
+                                (command->assembly command filen function-stack
+                                                   instruction-number))
+                  (list fstack (string-append assembly nassem)))
+                (list '("VM$outer") "")
+                commands
+                (range 0 (length commands))))))
 
 (define (push-to x base type)
   (cond
@@ -105,23 +121,19 @@
    "D=M"
    dncr-stack
    "A=M"
-   "M=M-D"
-   "D=M"
+   "D=D-M"
    (string-concat "@TRUE" n)
-   (string-concat "D;J" (string-upcase type))
-   (string-concat "@FALSE" n)
-   "0;JMP"
-   (string-concat "(" "TRUE" n ")")
-   "@SP"
-   "A=M"
-   "M=-1"
-   (string-concat "@NEXT" n)
-   "0;JMP"
-   (string-concat "(" "FALSE" n ")")
+   (string-concat "D;J" type)
    "@SP"
    "A=M"
    "M=0"
-   (string-concat "(" "NEXT" n ")")
+   (string-concat "@FALSE" n)
+   "D;JMP"
+   (string-concat "(TRUE" n ")")
+   "@SP"
+   "A=M"
+   "M=-1"
+   (string-concat "(FALSE" n ")")
    incr-stack))
 
 (define (single-op op)
@@ -131,10 +143,10 @@
    (string-concat "M=" op "M")
    incr-stack))
 
-(define/match (command->assembly c filen cfname n)
+(define/match (command->assembly c filen fstack n)
   [((command "push" segment sx) _ _ _)
    (define x (string->number sx))
-   (list cfname
+   (list fstack
          (match segment
            ["constant" (join-line
                         (string-concat "@" x)
@@ -147,12 +159,12 @@
            ["argument" (push-to x "ARG" 'memory)]
            ["this"     (push-to x "THIS" 'memory)]
            ["that"     (push-to x "THAT" 'memory)]
-           ["temp"     (push-to (+ 5 x) "0" 'fixed)]
-           ["pointer"  (push-to (+ 3 x) "0" 'fixed)]
-           ["static"   (push-to (+ 16 x) "0" 'fixed)]))]
+           ["temp"     (push-to x "5" 'fixed)]
+           ["pointer"  (push-to x "3" 'fixed)]
+           ["static"   (push-to x "16" 'fixed)]))]
   [((command "pop" segment sx) _ _ _)
    (define x (string->number sx))
-   (list cfname
+   (list fstack
          (match segment
            ["local"    (pop-to x "LCL" 'memory)]
            ["argument" (pop-to x "ARG" 'memory)]
@@ -162,109 +174,91 @@
            ["pointer"  (pop-to (+ 3 x) "0" 'fixed)]
            ["static"   (pop-to (+ 16 x) "0" 'fixed)]))]
   [((command "label" label #f) _ _ _)
-   (list cfname (string-concat "(" (string-concat cfname "$" (string-upcase label)) ")\n"))]
+   (list fstack (string-concat "(" (string-concat (last fstack) "$" (string-upcase label)) ")\n"))]
   [((command "goto" label #f) _ _ _)
-   (list cfname
+   (list fstack
          (join-line
-          (string-concat "@" (string-concat cfname "$" (string-upcase label)))
+          (string-concat "@" (string-concat (last fstack) "$" (string-upcase label)))
           "0;JMP"))]
   [((command "if-goto" label #f) _ _ _)
-   (list cfname
+   (list fstack
          (join-line
           "@SP"
           "AM=M-1"
           "D=M"
-          (string-concat "@" (string-concat cfname "$" (string-upcase label)))
+          (string-concat "@" (string-concat (last fstack) "$" (string-upcase label)))
           "D;JNE"))]
-  [((command "add" #f #f) _ _ _) (list cfname (stack-op "D+M"))]
-  [((command "sub" #f #f) _ _ _) (list cfname (stack-op "M-D"))]
-  [((command "not" #f #f) _ _ _) (list cfname (single-op "!"))]
-  [((command "eq" #f #f) _ n _)  (list cfname (bool-op "eq" n))]
-  [((command "gt" #f #f) _ n _)  (list cfname (bool-op "gt" n))]
-  [((command "lt" #f #f) _ n _)  (list cfname (bool-op "lt" n))]
-  [((command "and" #f #f) _ _ _) (list cfname (stack-op "D&M"))]
-  [((command "or" #f #f) _ _ _)  (list cfname (stack-op "D|M"))]
-  [((command "neg" #f #f) _ _ _) (list cfname (single-op "-"))]
-  [((command "function" f n) _ _ _)
-   (define full-f (string-concat filen "." f ))
-   (list full-f
-         (join-line (string-concat "(" full-f ")")
-                    (string-concat "@" n)
-                    "D=A"
-                    "@FRAME"
-                    "M=D"
-                    (string-concat "(LOOP" n ")")
-                    (last (command->assembly (command "push" "constant" "0")
-                                             filen cfname (+ 1 n)))
-                    "@FRAME"
-                    "DM=M-1"
-                    "@LOOP"
-                    "D;JGT"))]
-  [((command "call" f n) _ _ _)
+  [((command "add" #f #f) _ _ _) (list fstack (stack-op "D+M"))]
+  [((command "sub" #f #f) _ _ _) (list fstack (stack-op "M-D"))]
+  [((command "not" #f #f) _ _ _) (list fstack (single-op "!"))]
+  [((command "eq" #f #f) _ _ n)  (list fstack (bool-op "EQ" n))]
+  [((command "gt" #f #f) _ _ n)  (list fstack (bool-op "LT" n))]
+  [((command "lt" #f #f) _ _ n)  (list fstack (bool-op "GT" n))]
+  [((command "and" #f #f) _ _ _) (list fstack (stack-op "D&M"))]
+  [((command "or" #f #f) _ _ _)  (list fstack (stack-op "D|M"))]
+  [((command "neg" #f #f) _ _ _) (list fstack (single-op "-"))]
+  [((command "function" f sn) _ _ in)
+   (define n (if sn (string->number sn) 0))
+   (define newstack (append fstack (list f)))
+   
+   (list newstack
+         (join-line (string-concat "(" f ")")
+                    (for/fold ([asm ""])
+                              ([x (range 0 n)])
+                      (string-append asm
+                                     (last (command->assembly (command "push" "constant" "0")
+                                                              filen
+                                                              newstack (+ 1 x)))))))]
+  [((command "call" f sn) _ _ instruction-n)
+   (define n (if sn (string->number sn) 0))
    (define (local-compile-command command)
      (match-define (list p1 p2 p3) command)
      (last (command->assembly (command p1 p2 p3)
-                              filen cfname (+ 1 n))))
-   (define return-address (string-concat filn "." cfname "$" "RETURN" n))
-   (list cfname
+                              filen fstack (+ 1 n))))
+   (define (save-function-var name)
+     (join-line
+      (string-concat "@" name)
+      "D=M"
+      "@SP"
+      "A=M"
+      "M=D"
+      incr-stack))
+   (define return-address (string-concat (last fstack) "$" "RETURN" instruction-n))
+   (list fstack
          (join-line (string-concat "@" return-address)
                     "D=A"
                     "@SP"
                     "A=M"
                     "M=D"
                     incr-stack
-                    "@LCL"
-                    "D=M"
-                    "@SP"
-                    "A=M"
-                    "M=D"
-                    incr-stack
-                    "@ARG"
-                    "D=M"
-                    "@SP"
-                    "A=M"
-                    "M=D"
-                    incr-stack
-                    "@THIS"
-                    "D=M"
-                    "@SP"
-                    "A=M"
-                    "M=D"
-                    incr-stack
-                    "@THIS"
-                    "D=M"
-                    "@SP"
-                    "A=M"
-                    "M=D"
-                    incr-stack
+                    (save-function-var "LCL")
+                    (save-function-var "ARG")
+                    (save-function-var "THIS")
+                    (save-function-var "THAT")
                     ; ARG = SP - n - 5
                     "@SP"
                     "D=M"
-                    "D=D-1"
-                    "D=D-1"
-                    "D=D-1"
-                    "D=D-1"
-                    "D=D-1"
-                    (for/fold ([assembly ""])
-                              ([x (range 0 n)])
-                      (string-concat assembly "\n"
-                                     "D=D-1"))
+                    (string-concat "@" n)
+                    "D=D-A"
+                    "@5"
+                    "D=D-A"
                     "@ARG"
                     "M=D"
                     "@SP"
                     "D=M"
                     "@LCL"
                     "M=D"
-                    (string-concat "0;JMP " f)
+                    (string-concat "@" f)
+                    "0;JMP"
                     (string-concat "(" return-address ")")))]
   [((command "return" #f #f) _ _ _)
    (define (local-compile-command command)
      (match-define (list p1 p2 p3) command)
      (last (command->assembly (command p1 p2 p3)
-                              filen cfname (+ 1 n))))
+                              filen fstack (+ 1 n))))
    (define (reset-caller-variable distance segment)
      (join-line
-      (string-concat "@" frameDistance)
+      (string-concat "@" distance)
       "D=A"
       "@R5"
       "A=M"
@@ -272,26 +266,28 @@
       "D=M"
       (string-concat "@" segment)
       "M=D"))
-   (join-line
-    "@LCL" ; FRAME = LCL
-    "D=M"
-    "@R5"
-    "M=D"
-    (reset-caller-variable "5" "R6")
-    dncr-stack
-    "@SP"
-    "A=M"
-    "D=M"
-    "@ARG"
-    "A=M"
-    "M=D"
-    "@ARG"
-    "D=M+1"
-    "@SP"
-    "M=D"
-    (reset-caller-variable "1" "THAT")
-    (reset-caller-variable "2" "THIS")
-    (reset-caller-variable "3" "ARG")
-    (reset-caller-variable "4" "LCL")
-    "@R5"
-    "0;JMP")])
+   (list (butlast fstack)
+         (join-line
+          "@LCL"
+          "D=M"
+          "@R5"
+          "M=D"
+          (reset-caller-variable "5" "R6")
+          dncr-stack
+          "@SP"
+          "A=M"
+          "D=M"
+          "@ARG"
+          "A=M"
+          "M=D"
+          "@ARG"
+          "D=M+1"
+          "@SP"
+          "M=D"
+          (reset-caller-variable "1" "THAT")
+          (reset-caller-variable "2" "THIS")
+          (reset-caller-variable "3" "ARG")
+          (reset-caller-variable "4" "LCL")
+          "@R6"
+          "A=M"
+          "0;JMP"))])

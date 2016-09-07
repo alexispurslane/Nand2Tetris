@@ -3,6 +3,7 @@
 (provide ->string
          join-line
          string-concat
+         butlast
          dncr-stack
          incr-stack)
 
@@ -19,6 +20,9 @@
 (define dncr-stack (join-line 
                     "@SP"
                     "M=M-1"))
+
 (define incr-stack (join-line 
                     "@SP"
                     "M=M+1"))
+
+(define butlast (compose reverse cdr reverse))
